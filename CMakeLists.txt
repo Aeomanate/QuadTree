@@ -1,0 +1,44 @@
+cmake_minimum_required(VERSION 3.19)
+project(QuadTree)
+
+set(CMAKE_CXX_FLAGS
+    "${CMAKE_CXX_FLAGS} \
+        -std=gnu++11 \
+        -pedantic \
+        -Wall \
+        -Wextra\
+         \
+        -Wconversion \
+        -Wenum-compare \
+        -Wfloat-equal \
+        -Woverloaded-virtual \
+        \
+        \
+    "
+    )
+
+set(STATIC_BUILD TRUE)
+if (CMAKE_BUILD_TYPE MATCHES Release)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+    set(STATIC_BUILD TRUE)
+endif ()
+
+if(STATIC_BUILD)
+    set(CMAKE_EXE_LINKER_FLAGS "-static -static-libgcc")
+endif()
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Executable/bin)
+
+add_executable(${PROJECT_NAME}
+    src/main.cpp
+
+    src/Tests.cpp
+    src/Tests.hpp
+
+    src/Vector.hpp
+
+    src/Box.hpp
+
+    src/QuadTree.hpp
+
+    )
