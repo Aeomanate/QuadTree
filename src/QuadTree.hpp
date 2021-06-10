@@ -9,11 +9,12 @@
 #include <memory>
 #include <type_traits>
 #include <algorithm>
+#include <functional>
 #include "Vector.hpp"
 #include "Box.hpp"
 
 
-template<typename T, typename GetBox, typename Equal = std::equal_to<T>, typename Float = float>
+template<typename T, typename Real = float>
 class Quadtree {
   private:
     struct Node {
@@ -34,12 +35,12 @@ class Quadtree {
     };
     
   public:
-    explicit Quadtree(Box<Float> const& box,
-                      GetBox const& getBox = GetBox(),
-                      Equal const& equal = Equal())
+    explicit Quadtree(Box<Real> const& box,
+                      std::function<Box<Real>(T const&)> get_box,
+                      std::function<bool(T const&, T const&)> equal = std::equal_to<T>())
     : m_box(box)
     , m_root(new Node())
-    , m_get_box(getBox)
+    , m_get_box(get_box)
     , m_equal(equal)
     { }
     
@@ -55,7 +56,7 @@ class Quadtree {
         return node->children[0] == nullptr;
     }
     
-    Box<Float> getQuadrantByIndex(Box<Float> const& box, int i) const {
+    Box<Real> getQuadrantByIndex(Box<Real> const& box, int i) const {
         auto origin = box.getTopLeft();
         auto childSize = box.getSize() / 2.0f;
         
@@ -67,15 +68,16 @@ class Quadtree {
     
             case NEITHER_ONE_QUADRANT:
                 assert(false && "Invalid child index");
-                return Box<Float>();
+                return Box<Real>();
                 
             default:
                 assert(false && "Unexpected child index, logic error");
-                return Box<Float>();
+                return Box<Real>();
         }
     }
     
-    Quadrants getQuadrantIndex(Box<Float> const& nodeBox, Box<Float> const& valueBox) const {
+    Quadrants getQuadrantIndex(Box<Real> const& nodeBox,
+                               Box<Real> const& valueBox) const {
         auto center = nodeBox.getCenter();
         auto top = valueBox.top;
         auto bottom = valueBox.getBottom();
@@ -102,7 +104,8 @@ class Quadtree {
         else return NEITHER_ONE_QUADRANT;
     }
     
-    void add(std::unique_ptr<Node>& node, std::size_t depth, Box<Float> const& box, T const& value) {
+    void add(std::unique_ptr<Node>& node, std::size_t depth,
+             Box<Real> const& box, T const& value) {
         assert(node != nullptr);
         assert(box.contains(m_get_box(value)));
         if (isLeaf(node)) {
@@ -127,7 +130,7 @@ class Quadtree {
         }
     }
     
-    void split(std::unique_ptr<Node>& node, Box<Float> const& box) {
+    void split(std::unique_ptr<Node>& node, Box<Real> const& box) {
         assert(node != nullptr);
         assert(isLeaf(node) && "Only leaves can be split");
         // Create children
@@ -149,7 +152,9 @@ class Quadtree {
         node->values = std::move(newThisValues);
     }
     
-    void remove(std::unique_ptr<Node>& node, std::unique_ptr<Node>& parent, Box<Float> const& box, T const& value) {
+    void remove(std::unique_ptr<Node>& node,
+                std::unique_ptr<Node>& parent,
+                Box<Real> const& box, T const& value) {
         assert(node != nullptr);
         assert(box.contains(m_get_box(value)));
         if (isLeaf(node)) {
@@ -213,13 +218,15 @@ class Quadtree {
         }
     }
     
-    std::vector<T> query(const Box<Float>& box) const {
+    std::vector<T> query(const Box<Real>& box) const {
         auto values = std::vector<T>();
         query(m_root, m_box, box, values);
         return values;
     }
     
-    void query(std::unique_ptr<Node> const& node, Box<Float> const& box, Box<Float> const& queryBox, std::vector<T>& values) const {
+    void query(std::unique_ptr<Node> const& node,
+               Box<Real> const& box, Box<Real> const& queryBox,
+               std::vector<T>& values) const {
         assert(node != nullptr);
         assert(queryBox.intersects(box));
         for (const auto& value: node->values) {
@@ -242,10 +249,10 @@ class Quadtree {
     static const std::size_t MAX_VALUES_SIZE = 16;
     static const std::size_t MAX_DEPTH = 8;
     
-    Box<Float> m_box;
+    Box<Real> m_box;
     std::unique_ptr<Node> m_root;
-    GetBox m_get_box;
-    Equal m_equal;
+    std::function<Box<Real>(T const&)> m_get_box;
+    std::function<bool(T const&, T const&)> m_equal;
 };
 
 #endif //QUADTREE_QUADTREE_HPP

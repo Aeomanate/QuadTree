@@ -191,20 +191,14 @@ void QuadTree_CreateTest() {
         }
     };
     
-    Quadtree<void*, BoxGetter, std::equal_to<int>, int> tree(Box<int>{});
+    Quadtree<void*, int> tree(Box<int>{}, [] (void*){ return Box<int>(); });
     (void)tree;
     std::cout << "QuadTree creatable...\n";
 }
 
 void QuadTree_GetQuadrantIndexTest() {
-    class BoxGetter {
-        Box<float> operator()(void* ptr = nullptr) const {
-            (void)ptr;
-            return Box<float>();
-        }
-    };
-    using QT = Quadtree<void*, BoxGetter>;
-    QT quadtree(Box<float>(0, 0, 0, 0));
+    using QT = Quadtree<void*>;
+    QT quadtree(Box<float>(0, 0, 0, 0), [] (void*){ return Box<float>(); });
     Box<float> parent_box(100, 100, 100, 100);
     
     std::function<void()> tests[] = {
@@ -286,14 +280,8 @@ void QuadTree_GetQuadrantIndexTest() {
 }
 
 void QuadTree_GetQuadrantByIndexTest() {
-    class BoxGetter {
-        Box<float> operator()(void* ptr = nullptr) const {
-            (void)ptr;
-            return Box<float>();
-        }
-    };
-    using QT = Quadtree<void*, BoxGetter>;
-    QT quadtree(Box<float>(0, 0, 0, 0));
+    using QT = Quadtree<void*>;
+    QT quadtree(Box<float>(0, 0, 0, 0), [] (void*){ return Box<float>(); });
     Box<float> parent_box(100, 100, 100, 100);
     
     std::function<void()> tests[] = {
@@ -336,14 +324,10 @@ void QuadTree_GetQuadrantByIndexTest() {
 }
 
 void QuadTree_AddValuesTest() {
-    class BoxGetter {
-      public:
-        Box<float> operator()(Box<float> const* value) const {
-            return *value;
-        }
-    };
-    using QT = Quadtree<Box<float> const*, BoxGetter>;
-    QT quadtree(Box<float>(0, 0, 100, 100));
+    using QT = Quadtree<Box<float> const*>;
+    QT quadtree(Box<float>(0, 0, 100, 100), [] (Box<float> const* ptr){
+        return *ptr;
+    });
     
     std::vector<Box<float>> values = {
         Box<float>{10, 10, 10, 10},
@@ -389,14 +373,10 @@ void QuadTree_AddValuesTest() {
 }
 
 void QuadTree_RemoveValuesTest() {
-    class BoxGetter {
-      public:
-        Box<float> operator()(Box<float> const* value) const {
-            return *value;
-        }
-    };
-    using QT = Quadtree<Box<float> const*, BoxGetter>;
-    QT quadtree(Box<float>(0, 0, 100, 100));
+    using QT = Quadtree<Box<float> const*>;
+    QT quadtree(Box<float>(0, 0, 100, 100), [] (Box<float> const* ptr) {
+        return *ptr;
+    });
     
     std::vector<Box<float>> values = {
         Box<float>{10, 10, 10, 10},
@@ -423,14 +403,10 @@ void QuadTree_RemoveValuesTest() {
 }
 
 void QuadTree_MergeTest() {
-    class BoxGetter {
-      public:
-        Box<float> operator()(Box<float> const* value) const {
-            return *value;
-        }
-    };
-    using QT = Quadtree<Box<float> const*, BoxGetter>;
-    QT quadtree(Box<float>(0, 0, 100, 100));
+    using QT = Quadtree<Box<float> const*>;
+    QT quadtree(Box<float>(0, 0, 100, 100), [] (Box<float> const* ptr){
+        return *ptr;
+    });
     
     std::vector<Box<float>> values = {
         Box<float>{10, 10, 10, 10},
@@ -456,14 +432,10 @@ void QuadTree_MergeTest() {
 }
 
 void QuadTree_IntersectTest() {
-    class BoxGetter {
-      public:
-        Box<float> operator()(Box<float> const* value) const {
-            return *value;
-        }
-    };
-    using QT = Quadtree<Box<float> const*, BoxGetter>;
-    QT quadtree(Box<float>(0, 0, 100, 100));
+    using QT = Quadtree<Box<float> const*>;
+    QT quadtree(Box<float>(0, 0, 100, 100), [] (Box<float> const* ptr){
+        return *ptr;
+    });
     
     std::vector<Box<float>> values = {
         Box<float>{10, 10, 10, 10},
