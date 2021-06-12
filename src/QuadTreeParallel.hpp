@@ -1,17 +1,15 @@
 //
-// Created by Aeomanate on 01.06.2021.
+// Created by Aeomanate on 12.06.2021.
 //
 
-#ifndef QUADTREE_QUADTREE_HPP
-#define QUADTREE_QUADTREE_HPP
+#ifndef QUADTREE_QUADTREEPARALLEL_HPP
+#define QUADTREE_QUADTREEPARALLEL_HPP
 
-#include <type_traits>
 #include <algorithm>
 #include "QuadTreeBase.hpp"
 
-
 template<typename T, typename Real = float>
-class QuadTree: public QuadTreeBase<T, Real> {
+class QuadTreeParallel: public QuadTreeBase<T, Real> {
   private:
     using typename QuadTreeBase<T, Real>::Node;
     using typename QuadTreeBase<T, Real>::Quadrants;
@@ -22,12 +20,12 @@ class QuadTree: public QuadTreeBase<T, Real> {
     using QuadTreeBase<T, Real>::NORTH_EAST;
     using QuadTreeBase<T, Real>::SOUTH_WEST;
     using QuadTreeBase<T, Real>::SOUTH_EAST;
-    
+  
   public:
-    explicit QuadTree(
+    explicit QuadTreeParallel(
         Box<Real> const& box,
-        std::function<Box<Real>(T const&)> get_box,
-        std::function<bool(T const&, T const&)> equal = std::equal_to<T>())
+    std::function<Box<Real>(T const&)> get_box,
+    std::function<bool(T const&, T const&)> equal = std::equal_to<T>())
     : m_box(box)
     , m_root(new Node())
     , m_get_box(get_box)
@@ -42,7 +40,7 @@ class QuadTree: public QuadTreeBase<T, Real> {
         std::unique_ptr<Node> null = nullptr;
         remove(m_root, null, m_box, value);
     }
-    
+  
   private:
     bool isLeaf(std::unique_ptr<Node> const& node) const {
         return node->children[0] == nullptr;
@@ -57,11 +55,11 @@ class QuadTree: public QuadTreeBase<T, Real> {
             case NORTH_EAST: return { origin + Vector2<Real>(childSize.x, 0), childSize };
             case SOUTH_WEST: return { origin + Vector2<Real>(0, childSize.y), childSize };
             case SOUTH_EAST: return { origin + childSize, childSize };
-    
+            
             case NEITHER_ONE_QUADRANT:
                 assert(false && "Invalid child index");
                 return Box<Real>();
-                
+            
             default:
                 assert(false && "Unexpected child index, logic error");
                 return Box<Real>();
@@ -236,7 +234,7 @@ class QuadTree: public QuadTreeBase<T, Real> {
             }
         }
     }
-    
+  
   private:
     Box<Real> m_box;
     std::unique_ptr<Node> m_root;
@@ -244,4 +242,5 @@ class QuadTree: public QuadTreeBase<T, Real> {
     std::function<bool(T const&, T const&)> m_equal;
 };
 
-#endif //QUADTREE_QUADTREE_HPP
+
+#endif // QUADTREE_QUADTREEPARALLEL_HPP

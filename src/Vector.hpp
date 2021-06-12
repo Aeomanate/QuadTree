@@ -28,8 +28,6 @@ class Vector2 {
         return *this;
     }
 };
-using Vector2F = Vector2<float>;
-using Vector2D = Vector2<double>;
 
 template<typename T>
 Vector2<T> operator+(Vector2<T> lhs, Vector2<T> const& rhs) {

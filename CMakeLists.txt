@@ -41,4 +41,4 @@ add_executable(${PROJECT_NAME}
 
     src/QuadTree.hpp
 
-    )
+    src/QuadTreeBase.hpp src/QuadTreeParallel.cpp src/QuadTreeParallel.hpp)

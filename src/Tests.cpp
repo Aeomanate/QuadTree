@@ -10,9 +10,13 @@
 #include <functional>
 #include "Box.hpp"
 
+#define protected public
+#include "QuadTreeBase.hpp"
 #define private public
 #include "QuadTree.hpp"
+#include "QuadTreeParallel.hpp"
 #undef private
+#undef protected
 
 void Box_ContainIntersectTest() {
     std::function<void()> boxTests[] = {
@@ -183,95 +187,92 @@ void Box_ContainIntersectTest() {
     for(auto const& test: boxTests) test();
 }
 
+template <template<class, class> class CustomQuadTree, class T, class Real>
 void QuadTree_CreateTest() {
-    class BoxGetter {
-        Box<int> operator()(void* ptr = nullptr) const {
-            (void)ptr;
-            return Box<int>();
-        }
-    };
-    
-    Quadtree<void*, int> tree(Box<int>{}, [] (void*){ return Box<int>(); });
+    using QT = CustomQuadTree<T, Real>;
+    QT tree(Box<Real>{}, [] (void*){ return Box<int>(); });
     (void)tree;
     std::cout << "QuadTree creatable...\n";
 }
 
+template <template<class, class> class CustomQuadTree, class T, class Real>
 void QuadTree_GetQuadrantIndexTest() {
-    using QT = Quadtree<void*>;
-    QT quadtree(Box<float>(0, 0, 0, 0), [] (void*){ return Box<float>(); });
-    Box<float> parent_box(100, 100, 100, 100);
+    using QT = CustomQuadTree<T, Real>;
+    using Quadrants = typename QT::Quadrants;
+    QT quadtree(Box<Real>(0, 0, 0, 0), [] (void*){ return Box<Real>(); });
+    Box<Real> parent_box(100, 100, 100, 100);
     
     std::function<void()> tests[] = {
       [&] {
-          Box<float> target_box(1, 1, 10, 10);
-          QT::Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
-          assert(quadrant == QT::Quadrants::NORTH_WEST);
+          Box<Real> target_box(1, 1, 10, 10);
+          Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
+          assert(quadrant == Quadrants::NORTH_WEST);
       },
       
       [&] {
-          Box<float> target_box(99, 99, 1, 1);
-          QT::Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
-          assert(quadrant == QT::Quadrants::NORTH_WEST);
+          Box<Real> target_box(99, 99, 1, 1);
+          Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
+          assert(quadrant == Quadrants::NORTH_WEST);
       },
 
       [&] {
-          Box<float> target_box(50, 50, 100, 100);
-          QT::Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
-          assert(quadrant == QT::Quadrants::NEITHER_ONE_QUADRANT);
+          Box<Real> target_box(50, 50, 100, 100);
+          Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
+          assert(quadrant == Quadrants::NEITHER_ONE_QUADRANT);
       },
       
       [&] {
-          Box<float> target_box(100, 100, 100, 100);
-          QT::Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
-          assert(quadrant == QT::Quadrants::NEITHER_ONE_QUADRANT);
+          Box<Real> target_box(100, 100, 100, 100);
+          Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
+          assert(quadrant == Quadrants::NEITHER_ONE_QUADRANT);
       },
       
       [&] {
-          Box<float> target_box(150, 100, 10, 10);
-          QT::Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
-          assert(quadrant == QT::Quadrants::NORTH_EAST);
+          Box<Real> target_box(150, 100, 10, 10);
+          Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
+          assert(quadrant == Quadrants::NORTH_EAST);
       },
       
       [&] {
-          Box<float> target_box(150, 100, 51, 10);
-          QT::Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
-          assert(quadrant == QT::Quadrants::NORTH_EAST);
+          Box<Real> target_box(150, 100, 51, 10);
+          Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
+          assert(quadrant == Quadrants::NORTH_EAST);
       },
       
       [&] {
-          Box<float> target_box(100, 100, 100, 10);
-          QT::Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
-          assert(quadrant == QT::Quadrants::NEITHER_ONE_QUADRANT);
+          Box<Real> target_box(100, 100, 100, 10);
+          Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
+          assert(quadrant == Quadrants::NEITHER_ONE_QUADRANT);
       },
       
       [&] {
-          Box<float> target_box(100, 150, 10, 10);
-          QT::Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
-          assert(quadrant == QT::Quadrants::SOUTH_WEST);
+          Box<Real> target_box(100, 150, 10, 10);
+          Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
+          assert(quadrant == Quadrants::SOUTH_WEST);
       },
       
       [&] {
-          Box<float> target_box(100, 150, 10, 51);
-          QT::Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
-          assert(quadrant == QT::Quadrants::SOUTH_WEST);
+          Box<Real> target_box(100, 150, 10, 51);
+          Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
+          assert(quadrant == Quadrants::SOUTH_WEST);
       },
 
       [&] {
-          Box<float> target_box(100, 150, 51, 10);
-          QT::Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
-          assert(quadrant == QT::Quadrants::NEITHER_ONE_QUADRANT);
+          Box<Real> target_box(100, 150, 51, 10);
+          Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
+          assert(quadrant == Quadrants::NEITHER_ONE_QUADRANT);
       },
 
       [&] {
-          Box<float> target_box(100, 150, 50, 10);
-          QT::Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
-          assert(quadrant == QT::Quadrants::NEITHER_ONE_QUADRANT);
+          Box<Real> target_box(100, 150, 50, 10);
+          Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
+          assert(quadrant == Quadrants::NEITHER_ONE_QUADRANT);
       },
 
       [&] {
-          Box<float> target_box(150, 150, 10, 10);
-          QT::Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
-          assert(quadrant == QT::Quadrants::SOUTH_EAST);
+          Box<Real> target_box(150, 150, 10, 10);
+          Quadrants quadrant = quadtree.getQuadrantIndex(parent_box, target_box);
+          assert(quadrant == Quadrants::SOUTH_EAST);
       },
     };
     
@@ -279,14 +280,16 @@ void QuadTree_GetQuadrantIndexTest() {
     std::cout << "QuadTree indexes of quadrants compute correctly...\n";
 }
 
+template <template<class, class> class CustomQuadTree, class T, class Real>
 void QuadTree_GetQuadrantByIndexTest() {
-    using QT = Quadtree<void*>;
-    QT quadtree(Box<float>(0, 0, 0, 0), [] (void*){ return Box<float>(); });
-    Box<float> parent_box(100, 100, 100, 100);
+    using QT = CustomQuadTree<T, Real>;
+    using Quadrants = typename QT::Quadrants;
+    QT quadtree(Box<Real>(0, 0, 0, 0), [] (void*){ return Box<Real>(); });
+    Box<Real> parent_box(100, 100, 100, 100);
     
     std::function<void()> tests[] = {
         [&] {
-            auto box = quadtree.getQuadrantByIndex(parent_box, QT::Quadrants::NORTH_WEST);
+            auto box = quadtree.getQuadrantByIndex(parent_box, Quadrants::NORTH_WEST);
             assert(abs(box.top - 100) < 1e-5);
             assert(abs(box.getBottom() - 150) < 1e-5);
             assert(abs(box.left - 100) < 1e-5);
@@ -294,7 +297,7 @@ void QuadTree_GetQuadrantByIndexTest() {
         },
 
         [&] {
-            auto box = quadtree.getQuadrantByIndex(parent_box, QT::Quadrants::NORTH_EAST);
+            auto box = quadtree.getQuadrantByIndex(parent_box, Quadrants::NORTH_EAST);
             assert(abs(box.top - 100) < 1e-5);
             assert(abs(box.getBottom() - 150) < 1e-5);
             assert(abs(box.left - 150) < 1e-5);
@@ -302,7 +305,7 @@ void QuadTree_GetQuadrantByIndexTest() {
         },
 
         [&] {
-            auto box = quadtree.getQuadrantByIndex(parent_box, QT::Quadrants::SOUTH_WEST);
+            auto box = quadtree.getQuadrantByIndex(parent_box, Quadrants::SOUTH_WEST);
             assert(abs(box.top - 150) < 1e-5);
             assert(abs(box.getBottom() - 200) < 1e-5);
             assert(abs(box.left - 100) < 1e-5);
@@ -310,7 +313,7 @@ void QuadTree_GetQuadrantByIndexTest() {
         },
 
         [&] {
-            auto box = quadtree.getQuadrantByIndex(parent_box, QT::Quadrants::SOUTH_EAST);
+            auto box = quadtree.getQuadrantByIndex(parent_box, Quadrants::SOUTH_EAST);
             assert(abs(box.top - 150) < 1e-5);
             assert(abs(box.getBottom() - 200) < 1e-5);
             assert(abs(box.left - 150) < 1e-5);
@@ -323,17 +326,18 @@ void QuadTree_GetQuadrantByIndexTest() {
     std::cout << "QuadTree quadrants boxes compute correctly...\n";
 }
 
+template <template<class, class> class CustomQuadTree, class T, class Real>
 void QuadTree_AddValuesTest() {
-    using QT = Quadtree<Box<float> const*>;
-    QT quadtree(Box<float>(0, 0, 100, 100), [] (Box<float> const* ptr){
+    using QT = CustomQuadTree<T, Real>;
+    QT quadtree(Box<Real>(0, 0, 100, 100), [] (Box<Real> const* ptr){
         return *ptr;
     });
     
-    std::vector<Box<float>> values = {
-        Box<float>{10, 10, 10, 10},
-        Box<float>{60, 10, 10, 10},
-        Box<float>{10, 60, 10, 10},
-        Box<float>{60, 60, 10, 10},
+    std::vector<Box<Real>> values = {
+        Box<Real>{10, 10, 10, 10},
+        Box<Real>{60, 10, 10, 10},
+        Box<Real>{10, 60, 10, 10},
+        Box<Real>{60, 60, 10, 10},
     };
     
     for(int i = 0; i != 4; ++i) {
@@ -357,32 +361,33 @@ void QuadTree_AddValuesTest() {
     }
     
     // Add unbounded value
-    quadtree.add(new Box<float>(10, 10, 60, 10));
+    quadtree.add(new Box<Real>(10, 10, 60, 10));
     assert(quadtree.m_root->values.size() == 1);
-    quadtree.add(new Box<float>(10, 10, 10, 60));
+    quadtree.add(new Box<Real>(10, 10, 10, 60));
     assert(quadtree.m_root->values.size() == 2);
-    quadtree.add(new Box<float>(10, 10, 60, 60));
+    quadtree.add(new Box<Real>(10, 10, 60, 60));
     assert(quadtree.m_root->values.size() == 3);
     
     for(int i = 0; i != 16; ++i) {
-        quadtree.add(new Box<float>(10, 10, 60, 60));
+        quadtree.add(new Box<Real>(10, 10, 60, 60));
     }
     assert(quadtree.m_root->values.size() == 19);
     
     std::cout << "QuadTree add values work normal...\n";
 }
 
+template <template<class, class> class CustomQuadTree, class T, class Real>
 void QuadTree_RemoveValuesTest() {
-    using QT = Quadtree<Box<float> const*>;
-    QT quadtree(Box<float>(0, 0, 100, 100), [] (Box<float> const* ptr) {
+    using QT = CustomQuadTree<T, Real>;
+    QT quadtree(Box<Real>(0, 0, 100, 100), [] (Box<Real> const* ptr) {
         return *ptr;
     });
     
-    std::vector<Box<float>> values = {
-        Box<float>{10, 10, 10, 10},
-        Box<float>{60, 10, 10, 10},
-        Box<float>{10, 60, 10, 10},
-        Box<float>{60, 60, 10, 10},
+    std::vector<Box<Real>> values = {
+        Box<Real>{10, 10, 10, 10},
+        Box<Real>{60, 10, 10, 10},
+        Box<Real>{10, 60, 10, 10},
+        Box<Real>{60, 60, 10, 10},
     };
     
     for(int i = 0; i != 4; ++i) {
@@ -402,17 +407,18 @@ void QuadTree_RemoveValuesTest() {
     std::cout << "QuadTree values removed correctly...\n";
 }
 
+template <template<class, class> class CustomQuadTree, class T, class Real>
 void QuadTree_MergeTest() {
-    using QT = Quadtree<Box<float> const*>;
-    QT quadtree(Box<float>(0, 0, 100, 100), [] (Box<float> const* ptr){
+    using QT = CustomQuadTree<T, Real>;
+    QT quadtree(Box<Real>(0, 0, 100, 100), [] (Box<Real> const* ptr){
         return *ptr;
     });
     
-    std::vector<Box<float>> values = {
-        Box<float>{10, 10, 10, 10},
-        Box<float>{60, 10, 10, 10},
-        Box<float>{10, 60, 10, 10},
-        Box<float>{60, 60, 10, 10},
+    std::vector<Box<Real>> values = {
+        Box<Real>{10, 10, 10, 10},
+        Box<Real>{60, 10, 10, 10},
+        Box<Real>{10, 60, 10, 10},
+        Box<Real>{60, 60, 10, 10},
     };
     
     for(int i = 0; i != 5; ++i) {
@@ -431,41 +437,52 @@ void QuadTree_MergeTest() {
     std::cout << "QuadTree merge test pass...\n";
 }
 
+template <template<class, class> class CustomQuadTree, class T, class Real>
 void QuadTree_IntersectTest() {
-    using QT = Quadtree<Box<float> const*>;
-    QT quadtree(Box<float>(0, 0, 100, 100), [] (Box<float> const* ptr){
+    using QT = CustomQuadTree<T, Real>;
+    QT quadtree(Box<Real>(0, 0, 100, 100), [] (Box<Real> const* ptr){
         return *ptr;
     });
     
-    std::vector<Box<float>> values = {
-        Box<float>{10, 10, 10, 10},
-        Box<float>{60, 10, 10, 10},
-        Box<float>{10, 60, 10, 10},
-        Box<float>{60, 60, 10, 10},
+    std::vector<Box<Real>> values = {
+        Box<Real>{10, 10, 10, 10},
+        Box<Real>{60, 10, 10, 10},
+        Box<Real>{10, 60, 10, 10},
+        Box<Real>{60, 60, 10, 10},
     };
     
     for(auto const& value: values) {
         quadtree.add(&value);
     }
     
-    auto box = Box<float>(15, 15, 50, 1);
-    std::vector<Box<float> const*> intersected = quadtree.query(box);
+    auto box = Box<Real>(15, 15, 50, 1);
+    std::vector<Box<Real> const*> intersected = quadtree.query(box);
     assert(intersected[0] == &values[0]);
     assert(intersected[1] == &values[1]);
     
     std::cout << "QuadTree intersect work correctly...\n";
 }
 
+template <template <class, class> class CustomQuadTree>
+void customQuadTreeTests() {
+    QuadTree_CreateTest<CustomQuadTree, void*, int>();
+    QuadTree_GetQuadrantIndexTest<CustomQuadTree, void*, float>();
+    QuadTree_GetQuadrantByIndexTest<CustomQuadTree, void*, float>();
+    QuadTree_AddValuesTest<CustomQuadTree, Box<float> const*, float>();
+    QuadTree_RemoveValuesTest<CustomQuadTree, Box<float> const*, float>();
+    QuadTree_MergeTest<CustomQuadTree, Box<float> const*, float>();
+    QuadTree_IntersectTest<CustomQuadTree, Box<float> const*, float>();
+}
+
 void runTests() {
     #ifndef NDEBUG
     Box_ContainIntersectTest();
-    QuadTree_CreateTest();
-    QuadTree_GetQuadrantIndexTest();
-    QuadTree_GetQuadrantByIndexTest();
-    QuadTree_AddValuesTest();
-    QuadTree_RemoveValuesTest();
-    QuadTree_MergeTest();
-    QuadTree_IntersectTest();
+    
+    customQuadTreeTests<QuadTree>();
+    
+    std::cout << "\n *** Parallel QuadTree test ***\n";
+    customQuadTreeTests<QuadTreeParallel>();
+    
     std::cout << "All right\n";
     #endif
 }
